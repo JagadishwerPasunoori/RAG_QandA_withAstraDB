@@ -9,18 +9,34 @@ from langchain.document_loaders import PyPDFLoader
 import cassio
 from PyPDF2 import PdfReader
 
+import os
+import streamlit as st
+from langchain.vectorstores.cassandra import Cassandra
+from langchain.indexes.vectorstore import VectorStoreIndexWrapper
+from langchain.llms import OpenAI
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+import cassio
+from PyPDF2 import PdfReader
+
 # Initialize environment variables
 ASTRA_DB_ID = st.secrets["ASTRA_DB_ID"]
 ASTRA_DB_TOKEN = st.secrets["ASTRA_DB_TOKEN"]
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ASTRA_DB_KEYSPACE = st.secrets.get("ASTRA_DB_KEYSPACE", "default_keyspace")
+ASTRA_DB_REGION = st.secrets.get("ASTRA_DB_REGION", "us-east-2")
 
-# Initialize Cassandra/Astra DB
-cassio.init(
-    token=ASTRA_DB_TOKEN,
-    database_id=ASTRA_DB_ID,
-    keyspace=ASTRA_DB_KEYSPACE,
-)
+# Initialize Cassandra/Astra DB with error handling
+try:
+    cassio.init(
+        token=ASTRA_DB_TOKEN,
+        database_id=ASTRA_DB_ID,
+        keyspace=ASTRA_DB_KEYSPACE,
+        region=ASTRA_DB_REGION  # Explicit region setting
+    )
+except Exception as e:
+    st.error(f"Failed to initialize Astra DB: {str(e)}")
+    st.stop()
 
 def process_pdfs(pdf_files):
     documents = []
