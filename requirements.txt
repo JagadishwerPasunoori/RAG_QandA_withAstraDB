@@ -5,3 +5,4 @@ cassio
 pypdf
 python-dotenv
 tiktoken
+langchain-community
